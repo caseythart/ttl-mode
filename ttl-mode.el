@@ -132,7 +132,7 @@
 (defun owl-create (type)
   "When called, prompts user to select the type of thing they want to create."
   (interactive "sChoose the type of things you wish to create: (c)lass, (p)roperty, (i)ndividual, (r)ule.")
-  (case type
+  (case-equal type
 	("c" (call-interactively 'create-class))
 	("p" (call-interactively 'create-property))
         ("i" (call-interactively 'owl-individual))
@@ -178,7 +178,7 @@
 (defun create-property (type)
   "Prompts user to select the type of property to create, and then calls the appropriate function to create said property."
   (interactive "sEnter Type ('o' = Object, 'd' = Datatype, 'a' = Annotation): ")
-  (case type
+  (case-equal type
 	("o" (call-interactively 'create-object-property))
 	("d" (call-interactively 'create-datatype-property))
 	("a" (call-interactively 'create-annotation-property))
@@ -306,7 +306,7 @@
 ;; create rule
 (defun create-rule ()
   (interactive)
-  (case *rule-syntax*
+  (case-equal *rule-syntax*
 	("stardog" (create-stardog-rule))
 	("swrl" (create-swrl-rule))
 	(otheriwse (message "*rule-syntax* is not set to a supported value."))))
@@ -401,7 +401,7 @@
 (defun jump-to-section ()
   (interactive)
   (let ((char (read-char "(C)lasses;  (P)roperties: (O)bject, (D)atatype, (A)nnotation; (I)ndividuals; (E)xample Data")))
-    (case char
+    (case-equal char
 	  ((or ?c ?C) (move-to-section "Classes"))
 	  ((or ?p ?P) (move-to-section "Properties"))
 	  ((or ?o ?O) (move-to-section "Object Properties"))
@@ -494,11 +494,57 @@ downcased, no preceding underscore.
 
 
 (defun rdfs-comment-for-property-type (type property-with-base-prefix domain range lexical)
-  (case type
-	("owl:ObjectProperty" "rdfs:comment \"\"\"(:"(delete-prefix domain)"1 "property-with-base-prefix" :"(delete-prefix range)"1) means that "(delete-prefix domain)"1 "lexical" "(delete-prefix range)"1. For example, (: "property-with-base-prefix" :).\"\"\"^^xsd:string ;
-        ")
-	("owl:DatatypeProperty" "rdfs:comment \"\"\"(:"(delete-prefix domain)"1 "*base-prefix* property" \\\""(upcase (delete-prefix range))"\\\""range") means that "(delete-prefix domain)"1 "lexical" "(upcase (delete-prefix range))". For example, (: "*base-prefix*" \"\"^^"range").\"\"\"^^xsd:string ;
-        ")
-	("owl:AnnotationProperty" "rdfs:comment \"\"\"(:"(delete-prefix domain)"1 "*base-prefix* property" :"(delete-prefix range)"1) means that "(delete-prefix domain)"1 "lexical" "(delete-prefix range)"1. For example, (: "*base-prefix*" :).\"\"\"^^xsd:string ;
-        ")
+  (case-equal type
+	("owl:ObjectProperty" (comment-for-object-property property-with-base-prefix domain range lexical))
+	("owl:DatatypeProperty" (comment-for-datatype-property property-with-base-prefix domain range lexical))
+	("owl:AnnotationProperty" (comment-for-annotation-property property-with-base-prefix domain range lexical))
 	(otherwise "No property type specified.")))
+
+
+(defmacro case-equal (expr &rest clauses)
+  "Eval EXPR and choose among clauses on that value.
+Each clause looks like (KEYLIST BODY...).  EXPR is evaluated and
+compared against each key in each KEYLIST; the corresponding BODY
+is evaluated.  If no clause succeeds, this macro returns nil.  A
+single non-nil atom may be used in place of a KEYLIST of one
+atom.  A KEYLIST of t or `otherwise' is allowed only in the final
+clause, and matches if no other keys match.  Key values are
+compared by `equal'.
+
+\(fn EXPR (KEYLIST BODY...)...)"
+  (declare (indent 1) (debug (form &rest (sexp body))))
+  (macroexp-let2 macroexp-copyable-p temp expr
+    (let* ((head-list nil))
+      `(cond
+        ,@(mapcar
+           (lambda (c)
+             (cons (cond ((memq (car c) '(t otherwise)) t)
+                         ((eq (car c) 'cl--ecase-error-flag)
+                          `(error "cl-ecase failed: %s, %s"
+                                  ,temp ',(reverse head-list)))
+                         ((listp (car c))
+                          (setq head-list (append (car c) head-list))
+                          `(cl-member ,temp ',(car c)))
+                         (t
+                          (if (memq (car c) head-list)
+                              (error "Duplicate key in case: %s"
+                                     (car c)))
+                          (push (car c) head-list)
+                          `(equal ,temp ',(car c))))
+                   (or (cdr c) '(nil))))
+           clauses)))))
+
+(defun comment-for-object-property (property-with-base-prefix domain range lexical)
+    (concat "rdfs:comment \"\"\"(:"(delete-prefix domain)"1 "property-with-base-prefix" :"(delete-prefix range)"1) means that "(delete-prefix domain)"1 "lexical" "(delete-prefix range)"1. For example, (: "property-with-base-prefix" :).\"\"\"^^xsd:string ;
+        ")
+    )
+
+(defun comment-for-datatype-property (property-with-base-prefix domain range lexical)
+  (concat "rdfs:comment \"\"\"(:"(delete-prefix domain)"1 "*base-prefix* property" \\\""(upcase (delete-prefix range))"\\\""range") means that "(delete-prefix domain)"1 "lexical" "(upcase (delete-prefix range))". For example, (: "*base-prefix*" \"\"^^"range").\"\"\"^^xsd:string ;
+        ")
+  )
+
+(defun comment-for-annotation-property (property-with-base-prefix domain range lexical)
+  (concat "rdfs:comment \"\"\"(:"(delete-prefix domain)"1 "*base-prefix* property" :"(delete-prefix range)"1) means that "(delete-prefix domain)"1 "lexical" "(delete-prefix range)"1. For example, (: "*base-prefix*" :).\"\"\"^^xsd:string ;
+        ")
+  )
