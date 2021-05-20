@@ -144,7 +144,7 @@
   "Creates a new class."
   (interactive "sClass name: \nsSubclass of (defaults to owl:Thing): \nsLexical (defaults to just the name): ")
   (let*
-      ((class-with-base-prefix (concatenate 'string *base-prefix* class))
+      ((class-with-base-prefix (concat *base-prefix* class))
        (default-superclass "owl:Thing")
        (superclass (default-string-if-empty-or-nil superclass default-superclass))
        (default-lexical (downcase class))
@@ -159,7 +159,7 @@
 .")
     (search-backward "all")
     (forward-char 4)
-    (message (concatenate 'string "Created " class-with-base-prefix "! Complete the comment, and then add in example subclasses and instances below."))))
+    (message (concat "Created " class-with-base-prefix "! Complete the comment, and then add in example subclasses and instances below."))))
 
 (defun create-class-quick (input)
   "Calls create-class that takes a single argument, which is just the ist of strings of all the arguments."
@@ -469,7 +469,7 @@ downcased, no preceding underscore.
 ;; Workbench
 
 (defun write-property-details-for-type (property type domain range lexical superproperty)
-  (let* ((property-with-base-prefix (concatenate 'string *base-prefix* property))
+  (let* ((property-with-base-prefix (concat *base-prefix* property))
 	 (default-domain "owl:Thing")
 	 (domain (default-string-if-empty-or-nil domain default-domain))
 	 (default-range "owl:Thing")
@@ -490,7 +490,7 @@ downcased, no preceding underscore.
 .")
     (search-backward "(")
     (forward-char 2)
-    (message (concatenate 'string "Created " property-with-base-prefix ". Create your example, and add it to the example triple below."))))
+    (message (concat "Created " property-with-base-prefix ". Create your example, and add it to the example triple below."))))
 
 
 (defun rdfs-comment-for-property-type (type property-with-base-prefix domain range lexical)
