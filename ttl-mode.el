@@ -82,7 +82,7 @@
 			(subject-keywords-regexp  (concat "^" prefix-keywords-regexp "\\([[:word:]_-]+\\)\\>"))
 			(warning-words-regexp (regexp-opt warning-words 'words)))
 		   `(
-		     (,subject-keywords-regexp . font-lock-keyword-face)              ;; subjects
+		     (,subject-keywords-regexp . font-lock-keyword-face)                 ;; subjects
 		     (,"\\^\\^[^,;.]+\\|@en" . font-lock-comment-face)                   ;; literal types
 		     (," a \\|:\\([[:word:]_-]+\\)\\>\\|<.*>" . font-lock-constant-face) ;; resource names
 		     (,prefix-keywords-regexp . font-lock-type-face)                     ;; defined prefixes
@@ -131,6 +131,8 @@
 ;;;;; Resource Creation
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; TODO: commented out line above resource giving full uri (opt flag)
+
 ;;; create thing
 (defun owl-create (type)
   "When called, prompts user to select the type of thing they want to create."
@@ -155,8 +157,8 @@
         skos:prefLabel \""lexical"\"@en ;
 	rdfs:subClassOf "superclass" ;
 	rdfs:comment \"\"\"" base-prefix class" is the class of all \"\"\"^^xsd:string ;
-        "base-prefix"exampleSubclass \"\";
-        "base-prefix"exampleInstance \"\";
+        "base-prefix"exampleSubclass ;
+        "base-prefix"exampleInstance \"\"^^xsd:string ;
 .")
     (search-backward "all")
     (forward-char 4)
@@ -200,7 +202,7 @@
         ")) (insert  "rdfs:domain "domain" ;
         rdfs:range "range" ;
 	rdfs:comment \"\"\"(:"(delete-prefix domain)"1 "base-prefix property" :"(delete-prefix range)"1) means that "(delete-prefix domain)"1 "lexical" "(delete-prefix range)"1. For example, (: "base-prefix property" :).\"\"\"^^xsd:string ;
-        "base-prefix"exampleTriple \"\";
+        "base-prefix"exampleTriple \"\"^^xsd:string ;
 .")
     (search-backward "(")
     (forward-char 2)
@@ -236,8 +238,8 @@
 	") (if (equal superproperty "") nil (insert "rdfs:subPropertyOf "superproperty" ;
         ")) (insert  "rdfs:domain "domain" ;
         rdfs:range "range" ;
-	rdfs:comment \"\"\"(:"(delete-prefix domain)"1 "base-prefix property" \\\""(upcase (delete-prefix range))"\\\""range") means that "(delete-prefix domain)"1 "lexical" "(upcase (delete-prefix range))". For example, (: "base-prefix" \"\"^^"range").\"\"\"^^xsd:string ;
-        "base-prefix"exampleTriple \"\";
+	rdfs:comment \"\"\"(:"(delete-prefix domain)"1 "base-prefix property" \\\""(upcase (delete-prefix range))"\\\""range") means that "(delete-prefix domain)"1 "lexical" "(upcase (delete-prefix range))". For example, (: "base-prefix property" \"\"^^"range").\"\"\"^^xsd:string ;
+        "base-prefix"exampleTriple \"\"^^xsd:string ;
 .")
     (search-backward "(")
     (forward-char 2)
@@ -272,8 +274,8 @@
 	") (if (equal superproperty "") nil (insert "rdfs:subPropertyOf "superproperty" ;
         ")) (insert  "rdfs:domain "domain" ;
         rdfs:range "range" ;
-	rdfs:comment \"\"\"(:"(delete-prefix domain)"1 "base-prefix property" :"(delete-prefix range)"1) means that "(delete-prefix domain)"1 "lexical" "(delete-prefix range)"1. For example, (: "base-prefix" :).\"\"\"^^xsd:string ;
-        "base-prefix"exampleTriple \"\";
+	rdfs:comment \"\"\"(:"(delete-prefix domain)"1 "base-prefix property" :"(delete-prefix range)"1) means that "(delete-prefix domain)"1 "lexical" "(delete-prefix range)"1. For example, (: "base-prefix property" :).\"\"\"^^xsd:string ;
+        "base-prefix"exampleTriple \"\"^^xsd:string ;
 .")
     (search-backward "(")
     (forward-char 2)
@@ -361,7 +363,8 @@
 ;; Stardog Syntax
 (defun create-stardog-rule ()
   (interactive)
-  (insert "#\nIF {\n\n}\nTHEN {\n\n}"))
+  (insert "IF {\n\n}\nTHEN {\n\n}")
+  (previous-line 4))
 
 ;; SWRL Syntax
 (defun create-swrl-rule ()

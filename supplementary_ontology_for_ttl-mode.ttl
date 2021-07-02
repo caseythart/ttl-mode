@@ -1,0 +1,55 @@
+@prefix : <http://www.supplementary_ontology_for_ttl-mode/#> .
+
+
+# example properties
+:example a owl:AnnotationProperty ;
+	rdfs:label "example"^^xsd:string ;
+	rdfs:domain rdfs:Resource ;
+	rdfs:comment """An annotation property that allows ontologists to document the connection between a resource and illustrative examples. This property should almost never be directly asserted. Instead, use the subproperties such as :exampleTriple and :exampleSubclass."""^^xsd:string ;
+.
+
+:exampleInstance a owl:AnnotationProperty ;
+	rdfs:subPropertyOf :example ;
+        rdfs:label "example instance"^^xsd:string ;
+        rdfs:domain owl:Class ;
+        rdfs:range xsd:string ;
+        rdfs:comment "An annotation property that allows ontologists to document the connection between a class and some illustrative instances. Note that these don't need to be directly asserted: you might have a case where an instance of class is noteworthy, despite not being a direct instance (that is, it could be inferred)."^^xsd:string ;
+	:exampleTriple ":Person :exampleInstance :BarackObama"^^xsd:string ;
+.
+
+:exampleSubclass a owl:AnnotationProperty ;
+	rdfs:subPropertyOf :example ;
+        rdfs:label "example subclass"^^xsd:string ;
+        rdfs:domain owl:Class ;
+        rdfs:range owl:Class ;
+        rdfs:comment "An annotation property that allows ontologists to document the connection between a class and its most notable subclasses. Note that these don't need to be directly asserted: you might have a case where a subclass of a subclass is noteworthy, despite not being a direct subclass."^^xsd:string ;
+	:exampleTriple ":HeadOfState :exampleSubclass :USPresident"^^xsd:string ;
+.
+
+:exampleSubproperty a owl:AnnotationProperty ;
+	rdfs:subPropertyOf :example ;
+        rdfs:label "example subproperty"^^xsd:string ;
+        rdfs:domain rdf:Property ;
+	rdfs:range rdf:Property ;
+        rdfs:comment "An annotation property that allows ontologists to document the connection between a property and its most notable subproperties. Note that these don't need to be directly asserted: you might have a structure where [:p1 rdfs:subPropertyOf :p2], and [:p2 rdfs:subPropertyOf :p3], but nonetheless you might want to note that :p1 is a good example subproperty of :p3 using :exampleSubproperty."^^xsd:string ;
+	:exampleTriple ":physicalPartOf :exampleSubproperty :bodyPartOf"^^xsd:string ;
+.
+    
+:exampleTriple a owl:AnnotationProperty ;
+	rdfs:subPropertyOf :example ;
+        rdfs:label "example triple"^^xsd:string ;
+	rdfs:range xsd:string ;
+        rdfs:comment "An annotation property that allows ontologists to give an example triple using the relevant term. Note that this triple does not need to be actually asserted; it just needs to be illustrative of the sort of triples you will be making with the term in question."^^xsd:string ;
+	:exampleTriple ":subRegion :exampleTriple \":NorthAmerica :subRegion :PacificNorthwest\"^^xsd:string"^^xsd:string ;
+.
+
+# former name
+:formerName a owl:AnnotationProperty ;
+	rdfs:label "former name"^^xsd:string ;
+        skos:prefLabel "was formerly called"^^xsd:string ;
+        rdfs:range xsd:string ;
+	rdfs:comment """(:Resource1 :formerName \"OLDNAME\"^^xsd:string) means that the term Resource1 used to be called \"OLDNAME\" . For example, if I rename gist:actual to gist:timeOf, I would rename it and add the triple (gist:actual :formerName \"gist:timeOf\"^^xsd:string).
+
+This is an optional documentation predicate, but it may be useful for those familiar with the old term. Just as important is to include former names as skos:altLabels if they are appropriate lexifications for the term in question. This will aid in search as well."""^^xsd:string ;
+       :exampleTriple "gist:actual :formerName \"gist:timeOf\"^^xsd:string"^^xsd:string ;
+.
