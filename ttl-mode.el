@@ -58,7 +58,7 @@
     (goto-char 0)
     (while (search-forward "@prefix" nil t nil)
       (forward-char 1)
-      (push (concat (thing-at-point 'word 'no-properties) ":") *defined-prefix-list*))))
+       (push (concat (thing-at-point 'word 'no-properties) ":") *defined-prefix-list*))))
 
 (defun get-prefix-list-regex ()
   "This function creates a regexp that can be used for coloring defined prefixes."
@@ -149,11 +149,11 @@
       ((class-with-base-prefix (concat *base-prefix* class))
        (default-superclass "owl:Thing")
        (superclass (default-string-if-empty-or-nil superclass default-superclass))
-       (default-lexical (downcase class))
+       (default-lexical class)
        (lexical (default-string-if-empty-or-nil lexical default-lexical)))
     (insert class-with-base-prefix " a owl:Class ;
 	rdfs:label \""class) (camelcase-to-sentence-case) (insert "\"^^xsd:string ;
-        skos:prefLabel \""lexical"\"@en ;
+        skos:prefLabel \""lexical) (camelcase-to-sentence-case) (insert "\"@en ;
 	rdfs:subClassOf "superclass" ;
 	rdfs:comment \"\"\"" class-with-base-prefix " is the class of all \"\"\"^^xsd:string ;
         "*base-prefix*"exampleSubclass \"\";
@@ -365,14 +365,21 @@
   (call-interactively 'get-and-insert-prefix))
 
 (defun get-and-insert-prefix (prefix)
-  (interactive "sPrefix (excluding ':'): ")
+  (interactive "sWe will automatically add owl:, rdf:, rdfs:, xml:, xsd:, skos:, skosxl: prefixes. What other prefix do you want to add (no :, please)? ")
   ;; TODO: add in a 'do you want the standard prefixes" question: owl, rdf, rdfs, xsd, xml, skos
   (if (equal prefix "")
       (if (= (point) (point-min))
 	  (progn (insert "@prefix : <http://TODO> .\n")
 	       (call-interactively 'get-and-insert-prefix)))	  ; print the empty prefix if it's the first line
     (progn (insert "@prefix " prefix ": <http://TODO> .\n")       ; print the given prefix given and repeat
-	   (call-interactively 'get-and-insert-prefix)))) 
+	   (call-interactively 'get-and-insert-prefix)))
+  (insert "@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xml: <http://www.w3.org/XML/1998/namespace> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix skosxl: <http://www.w3.org/2008/05/skos-xl#> .")) 
 
 (defun define-ontology-resource (comment)
   (interactive "sProvide a comment for this ontology: ")
@@ -489,7 +496,7 @@ downcased, no preceding underscore.
         rdfs:range "range" ;
 	"
 	(rdfs-comment-for-property-type type property-with-base-prefix domain range lexical)
-	*base-prefix*"exampleTriple \"\";
+	*base-prefix*"exampleTriple \"\"^^xsd:string ;
 .")
     (search-backward "(")
     (forward-char 2)
@@ -543,11 +550,11 @@ compared by `equal'.
     )
 
 (defun comment-for-datatype-property (property-with-base-prefix domain range lexical)
-  (concat "rdfs:comment \"\"\"(:"(delete-prefix domain)"1 "*base-prefix* property" \\\""(upcase (delete-prefix range))"\\\""range") means that "(delete-prefix domain)"1 "lexical" "(upcase (delete-prefix range))". For example, (: "*base-prefix*" \"\"^^"range").\"\"\"^^xsd:string ;
+  (concat "rdfs:comment \"\"\"(:"(delete-prefix domain)"1 "*base-prefix* property" \\\""(upcase (delete-prefix range))"\\\""range") means that "(delete-prefix domain)"1 "lexical" "(upcase (delete-prefix range))". For example, (: "*base-prefix* property" \\\"\\\"^^"range").\"\"\"^^xsd:string ;
         ")
   )
 
 (defun comment-for-annotation-property (property-with-base-prefix domain range lexical)
-  (concat "rdfs:comment \"\"\"(:"(delete-prefix domain)"1 "*base-prefix* property" :"(delete-prefix range)"1) means that "(delete-prefix domain)"1 "lexical" "(delete-prefix range)"1. For example, (: "*base-prefix*" :).\"\"\"^^xsd:string ;
+  (concat "rdfs:comment \"\"\"(:"(delete-prefix domain)"1 "*base-prefix* property" :"(delete-prefix range)"1) means that "(delete-prefix domain)"1 "lexical" "(delete-prefix range)"1. For example, (: "*base-prefix* property" :).\"\"\"^^xsd:string ;
         ")
   )
