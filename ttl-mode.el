@@ -176,6 +176,20 @@
   (interactive)
   (create-class "" "" ""))
 
+(defun create-subclass (superclass refinement)
+  "Creates a new uncommented class that is just the refinement of a superclass. These refinements will be named SUPER-REFINEMENT. For example, :Flour-White is a subclass you might want to create under :Flour."
+  (interactive "sSuperclass name: \nsRefinement (will be what follows the 'dash'): ")
+  (let*
+      ((default-superclass (concat *base-prefix* superclass))
+       (class-with-base-prefix (concat default-superclass "-" refinement))
+       (default-lexical (concat refinement " " superclass)))
+    (insert class-with-base-prefix " a owl:Class ;
+	rdfs:label \""(downcase default-lexical) "\"^^xsd:string ;
+        skos:prefLabel \""(downcase default-lexical) "\"@en ;
+	rdfs:subClassOf "default-superclass" ;
+.")
+    (message (concat "Created " class-with-base-prefix "!"))))
+
 ;;; create property
 (defun create-property (type)
   "Prompts user to select the type of property to create, and then calls the appropriate function to create said property."
@@ -283,15 +297,23 @@
 
 ;;TODO SECTION
 ;; create subclass
-(defun create-subclass (class lexical)
-    (interactive "sClass name: \nsLexical (defaults to just the name): ")
-
-    (create-class class superclass lexical)
-  )
 
 ;; create subproperty
-(defun create-subproperty ()
-  )
+(defun create-subproperty (superproperty type refinement)
+  "Creates a new uncommented property that is just the refinement of a superproperty. These refinements will be named SUPER-REFINEMENT. For example, :causes-necessarily is a subproperty you might want to create under :causes."
+  (interactive "sSuperproperty name: \nsType of property (Object, Datatype, Annotation):\nsRefinement (will be what follows the 'dash'): ")
+  (let*
+      ((default-superproperty (concat *base-prefix* superproperty))
+       (property-with-base-prefix (concat default-superproperty "-" refinement))
+       (default-lexical (concat refinement " " superproperty)))
+    (insert property-with-base-prefix " a owl:"type"Property ;
+	rdfs:label \""(downcase default-lexical) "\"^^xsd:string ;
+        skos:prefLabel \""(downcase default-lexical) "\"@en ;
+	rdfs:subPropertyOf "default-superproperty" ;
+        rdfs:comment \"\"\"\"\"\"^^xsd:string ;
+        :exampleTriple \"\"^^xsd:string ;
+.")
+    (message (concat "Created " property-with-base-prefix "!"))))
 
 ;; create instance
 (defun create-instance ()
@@ -492,9 +514,11 @@ downcased, no preceding underscore.
 	")
     (if (equal superproperty "") nil (insert "rdfs:subPropertyOf "superproperty" ;
         "))
-    (insert  "rdfs:domain "domain" ;
-        rdfs:range "range" ;
-	"
+    (if (equal domain "omit") nil (insert  "rdfs:domain "domain" ;
+        "))
+    (if (equal range "omit") nil (insert "rdfs:range "range" ;
+	"))
+    (insert
 	(rdfs-comment-for-property-type type property-with-base-prefix domain range lexical)
 	*base-prefix*"exampleTriple \"\"^^xsd:string ;
 .")
