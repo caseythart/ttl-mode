@@ -4,11 +4,11 @@
 
 (define-derived-mode ttl-mode fundamental-mode "ttl mode"
   "ttl mode is for creating and editing .ttl files."
-  ;; get ttl-mode variable bindings
-  (get-ttl-mode-variable-bindings)
-  
   ;; syntax table stuff
   (ttl-mode-syntax-settings)
+
+  ;; get ttl-mode variable bindings
+  (get-ttl-mode-variable-bindings)
   
   ;; colorizing stuff
   ;;  (ttl-syntax-highlighting)
@@ -58,7 +58,7 @@
     (goto-char 0)
     (while (search-forward "@prefix" nil t nil)
       (forward-char 1)
-       (push (concat (thing-at-point 'word 'no-properties) ":") *defined-prefix-list*))))
+       (push (thing-at-point 'word 'no-properties) *defined-prefix-list*))))
 
 (defun get-prefix-list-regex ()
   "This function creates a regexp that can be used for coloring defined prefixes."
@@ -96,6 +96,7 @@
   (modify-syntax-entry ?# "< b" ttl-mode-syntax-table)   ; '#' starts comments
   (modify-syntax-entry ?\n "> b" ttl-mode-syntax-table)  ; \n ends comments
   (modify-syntax-entry ?_ "w" ttl-mode-syntax-table)     ; '_' is part of a word
+  (modify-syntax-entry ?: "w")
   )
 
 ;; key bindings
@@ -581,4 +582,16 @@ compared by `equal'.
 (defun comment-for-annotation-property (property-with-base-prefix domain range lexical)
   (concat "rdfs:comment \"\"\"(:"(delete-prefix domain)"1 "*base-prefix* property" :"(delete-prefix range)"1) means that "(delete-prefix domain)"1 "lexical" "(delete-prefix range)"1. For example, (: "*base-prefix* property" :).\"\"\"^^xsd:string ;
         ")
+  )
+
+(defun create-inverse-property (property-type property prefLabel super-property inverse-property)
+  (interactive "sProperty Type (Object, Datatype, Annotation): \nsProperty to create (no :): \nsPreferred Label in English: \nsSuper-property: \nsProperty that it inverts: ")
+  (insert ":" property " a owl:" property-type "Property ;
+       owl:inverseOf " inverse-property " ;
+       rdfs:label \"" property) (camelcase-to-sentence-case) (insert "\"^^xsd:string ;
+       skos:prefLabel \"" prefLabel "\"@en ;")
+       (unless (equal super-property "") (insert "
+       rdfs:subPropertyOf " super-property " ;"))
+       (insert "\n       rdfs:comment \"This property is the inverse of " inverse-property ".\" ;
+.")
   )
